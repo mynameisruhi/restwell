@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RestWell - Sleep & Caffeine Tracker</title>
+    <meta name="description" content="Track your sleep and caffeine habits. Get personalized insights based on your age and gender.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>😴</text></svg>">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; padding: 16px; }
+        
+        header { text-align: center; margin-bottom: 20px; }
+        h1 { font-size: 32px; font-weight: bold; background: linear-gradient(to right, #22d3ee, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .tagline { color: #94a3b8; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; max-width: 1200px; margin: 0 auto; }
+        .card { background: #1e293b; border-radius: 12px; padding: 16px; border: 1px solid #334155; }
+        .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .icon-blue { background: #06b6d4; }
+        .icon-purple { background: #8b5cf6; }
+        .icon-pink { background: #ec4899; }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 8px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #f1f5f9; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #06b6d4; }
+        .helper { font-size: 11px; color: #64748b; margin-top: 4px; }
+        
+        .btn { width: 100%; padding: 10px; background: linear-gradient(to right, #06b6d4, #8b5cf6); border: none; border-radius: 8px; color: white; font-weight: 600; font-size: 14px; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        
+        .chart-container { display: flex; justify-content: center; }
+        .legend { display: flex; justify-content: center; gap: 16px; margin-top: 12px; font-size: 12px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .legend-dot { width: 14px; height: 14px; border-radius: 50%; }
+        .legend-box { width: 14px; height: 10px; border-radius: 2px; }
+        .legend-triangle { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 10px solid #fbbf24; }
+        
+        .results { margin-top: 16px; padding-top: 16px; border-top: 1px solid #334155; display: none; }
+        .results.show { display: block; }
+        .result-box { background: #0f172a; border-radius: 8px; padding: 12px; border: 1px solid #334155; margin-bottom: 8px; }
+        .result-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 4px; }
+        .result-title { font-weight: 600; font-size: 14px; }
+        .badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 600; }
+        .badge-green { background: rgba(52, 211, 153, 0.2); color: #34d399; }
+        .badge-blue { background: rgba(6, 182, 212, 0.2); color: #22d3ee; }
+        .badge-red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .badge-yellow { background: rgba(251, 191, 36, 0.2); color: #fbbf24; font-size: 10px; margin-left: 6px; }
+        .result-text { font-size: 12px; color: #cbd5e1; }
+        .result-text strong { color: #f1f5f9; }
+        .text-green { color: #34d399; }
+        .text-red { color: #f87171; }
+        .text-blue { color: #22d3ee; }
+        .tips-box { margin-top: 8px; padding: 8px; background: rgba(239, 68, 68, 0.1); border-radius: 6px; font-size: 11px; color: #94a3b8; }
+        .congrats-box { margin-top: 8px; padding: 8px; background: rgba(52, 211, 153, 0.1); border-radius: 6px; font-size: 12px; color: #34d399; text-align: center; }
+        
+        .chat-container { display: flex; flex-direction: column; height: 350px; }
+        .chat-messages { flex: 1; overflow-y: auto; margin-bottom: 12px; }
+        .message { padding: 10px; border-radius: 12px; margin-bottom: 8px; font-size: 13px; line-height: 1.4; max-width: 85%; word-wrap: break-word; }
+        .message-user { background: linear-gradient(to right, #06b6d4, #8b5cf6); margin-left: auto; }
+        .message-ai { background: #334155; margin-right: auto; }
+        .chat-input-row { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid #334155; }
+        .chat-input { flex: 1; padding: 10px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: #f1f5f9; font-size: 13px; }
+        .chat-input:disabled { opacity: 0.5; }
+        .send-btn { padding: 10px 16px; background: linear-gradient(to right, #8b5cf6, #ec4899); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
+        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        footer { text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid #334155; color: #64748b; font-size: 12px; }
+        footer a { color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>RestWell</h1>
+        <p class="tagline">Sleep & Caffeine Tracker</p>
+    </header>
+
+    <div class="grid">
+        <!-- Input Form -->
+        <div class="card">
+            <h2 class="card-title"><span class="icon icon-blue">📊</span> Your Data</h2>
+            <form id="healthForm">
+                <div class="form-row">
+                    <div>
+                        <label>Age</label>
+                        <input type="number" id="age" placeholder="Age" min="5" max="100" required>
+                    </div>
+                    <div>
+                        <label>Gender</label>
+                        <select id="gender" required>
+                            <option value="">Select</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Sleep Hours (per night)</label>
+                    <input type="number" id="sleep" placeholder="e.g. 7.5" step="0.5" min="0" max="24" required>
+                </div>
+                <div class="form-group">
+                    <label>Caffeine mg/day <span style="color: #64748b;">(optional)</span></label>
+                    <input type="number" id="caffeine" placeholder="Leave blank to estimate" min="0" max="2000">
+                    <p class="helper">☕ Coffee ~95mg | 🥤 Energy drink ~80mg | 🍵 Tea ~47mg</p>
+                </div>
+                <button type="submit" class="btn">Analyze My Habits</button>
+            </form>
+        </div>
+
+        <!-- Chart -->
+        <div class="card">
+            <h2 class="card-title"><span class="icon icon-purple">📈</span> Sleep vs Caffeine</h2>
+            <div class="chart-container">
+                <svg id="chart" width="380" height="240"></svg>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background: #38bdf8; border: 2px solid white;"></div> You</div>
+                <div class="legend-item"><div class="legend-box" style="background: rgba(52,211,153,0.3); border: 1px solid #34d399;"></div> Healthy Zone</div>
+                <div class="legend-item"><div class="legend-triangle"></div> Average</div>
+            </div>
+            <div class="results" id="results">
+                <div id="sleepResult"></div>
+                <div id="caffeineResult"></div>
+            </div>
+        </div>
+
+        <!-- AI Chat -->
+        <div class="card">
+            <h2 class="card-title"><span class="icon icon-pink">🤖</span> AI Assistant</h2>
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message message-ai">Hi! I can answer questions about sleep and caffeine. What would you like to know?</div>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Ask a question...">
+                    <button class="send-btn" id="sendBtn">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Built with ❤️ | <a href="https://github.com" target="_blank">View on GitHub</a></p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

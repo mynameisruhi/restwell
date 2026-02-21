@@ -1,0 +1,13 @@
+{
+  "name": "restwell",
+  "version": "1.0.0",
+  "description": "Sleep & Caffeine Tracker - Track your habits and get personalized insights",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
+  "keywords": ["sleep", "caffeine", "health", "tracker"],
+  "author": "Your Name",
+  "license": "MIT"
+}
